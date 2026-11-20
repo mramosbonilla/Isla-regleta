@@ -1,0 +1,740 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f7f5ed">
+<title>Isla Regleta</title>
+<style>
+:root{color-scheme:light;--ink:#183b36;--muted:#47635a;--paper:#f7f5ed;--line:#d6e2d9;--green:#17634f;--lime:#e1f2c7;--sea:#bdebe7;--gold:#ffdf8e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:1rem/1.55 system-ui,sans-serif}
+button,input,select{font:inherit;color:inherit}
+button,select,input{min-height:44px;border-radius:12px;border:1px solid #93a99e;background:#fff}
+button{padding:.55rem 1rem;cursor:pointer;font-weight:700}
+button:hover{border-color:var(--green);background:#ebf6ee}
+button:disabled{cursor:default;opacity:.72}
+button.primary{background:var(--green);border-color:var(--green);color:white}
+button.primary:hover{background:#114c3d}
+:focus-visible{outline:3px solid #aa4d00;outline-offset:3px}
+header{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.8rem max(1rem,calc((100% - 1080px)/2));background:#fffdf8;border-bottom:1px solid var(--line)}
+.brand{background:transparent;border-color:transparent;padding:.3rem;white-space:nowrap}
+.brand span{display:inline-block;background:var(--lime);border-radius:10px;padding:.25rem .45rem;margin-right:.4rem}
+main{width:min(100% - 2rem,1080px);margin:clamp(1rem,4vw,2.6rem) auto 3rem}
+h1,h2,h3,p{margin:0 0 .75rem}
+h1,h2,h3{line-height:1.13;letter-spacing:-.025em}
+h1{font-size:clamp(2rem,5vw,3.45rem)}
+h2{font-size:clamp(1.35rem,3vw,2rem)}
+.hero{display:grid;grid-template-columns:1fr 1fr;align-items:center;overflow:hidden;background:#d9f2e7;border:1px solid #b8dbcf;border-radius:28px}
+.intro{padding:clamp(1.2rem,5vw,3.2rem)}
+.intro p,.muted,small{color:var(--muted)}
+.map{position:relative;overflow:hidden;min-height:225px;height:100%;background:radial-gradient(ellipse at 60% 70%,#8bd9cf,#c6eee9 71%);isolation:isolate}
+.map::before{content:"";position:absolute;inset:19% 9% 13% 8%;border-radius:49% 48% 42% 46%;background:#a6d278;border:clamp(7px,2vw,15px) solid #ffe296;box-shadow:0 0 0 7px #ffffff76,0 13px 0 #378e7830;transform:rotate(-10deg);z-index:-1}
+.landmark{position:absolute;font-size:clamp(2rem,5vw,4rem);line-height:1;filter:drop-shadow(0 3px 1px #24523b30)}
+.landmark:nth-child(1){left:19%;top:34%}.landmark:nth-child(2){left:52%;top:26%}.landmark:nth-child(3){left:46%;top:59%}.landmark:nth-child(4){left:75%;top:48%}.landmark:nth-child(5){left:6%;top:72%;font-size:2rem}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,225px),1fr));gap:1rem;margin-top:1rem}
+.tile{padding:1.1rem;text-align:left;border:1px solid var(--line);border-radius:20px;background:#fffdf8;min-width:0}
+.tile strong,.tile small{display:block}.tile strong{font-size:1.16rem}.tile small{margin-top:.25rem;font-weight:500}
+.icon{display:inline-grid;place-items:center;background:var(--lime);width:42px;height:42px;border-radius:12px;margin-bottom:.55rem;font-size:1.25rem}
+.tile:nth-child(2) .icon{background:var(--gold)}.tile:nth-child(3) .icon{background:var(--sea)}
+.panel{border:1px solid var(--line);border-radius:23px;background:#fffdf8;padding:clamp(1rem,4vw,2rem)}
+.narrow{max-width:760px;margin-inline:auto}
+.row{display:flex;gap:.65rem;flex-wrap:wrap;align-items:center}.spread{justify-content:space-between}
+.section-gap{margin-top:1rem}.stack{display:grid;gap:1rem}
+label{display:grid;gap:.3rem;font-weight:650}
+select,input{padding:.45rem .65rem;max-width:100%}
+input{width:100%;min-width:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:.8rem}
+.story{font-size:clamp(1.1rem,3vw,1.35rem);background:#eaf4e9;border-radius:15px;padding:1rem;margin:.85rem 0}
+progress{width:100%;height:.55rem;display:block;accent-color:var(--green)}
+fieldset{margin:0;padding:0;border:0;min-width:0}legend{font-weight:750;margin-bottom:.4rem}
+.choice[aria-pressed=true]{background:var(--lime);border:2px solid var(--green);padding:calc(.55rem - 1px) calc(1rem - 1px)}
+.note,.hint{padding:.8rem 1rem;background:#fff2d4;border-radius:12px}
+.good{background:#e3f3df}
+#feedback:empty,#hint:empty{display:none}
+.area{border-collapse:collapse;width:100%;text-align:center;font-variant-numeric:tabular-nums;table-layout:fixed;font-size:clamp(.68rem,2.4vw,.95rem)}
+.area td,.area th{padding:.3rem .12rem;border:1px solid #a2b9ae;overflow-wrap:anywhere}
+.area td{background:#e5f4d9}
+.bar{display:flex;min-height:40px;margin:.45rem 0;gap:3px}
+.bar span{display:grid;place-items:center;flex:1;min-width:0;border-radius:7px;background:#bde7cb;padding:.25rem .1rem;text-align:center;font-size:.9rem;overflow-wrap:anywhere}
+.bar span.unknown{border:2px dashed #a77613;background:#ffdf8e}
+.palette{display:grid;grid-template-columns:repeat(auto-fit,minmax(134px,1fr));gap:.45rem}
+.rod{display:inline-grid;place-items:center;height:27px;width:calc(var(--n)*var(--unit,12px));flex:none;background:var(--color);color:var(--rod-ink);border:1px solid #0005;border-radius:3px;font-size:.75rem;font-weight:800;vertical-align:middle}
+.rod-row{display:flex;align-items:center;overflow:auto;min-height:46px;padding:.25rem;background:repeating-linear-gradient(90deg,#f4f7f2 0 calc(var(--unit,12px) - 1px),#d8e4da calc(var(--unit,12px) - 1px) var(--unit,12px));border:1px solid #cadbcc;border-radius:8px}
+.board{--unit:clamp(12px,3vw,24px);padding:.85rem;border:2px dashed #96bcb1;border-radius:15px;background:#edf8f4}
+.board label{display:block;font-size:.85rem}.board button{margin:.3rem 0}
+figure{margin:.5rem 0}.board p:last-child,figure p:last-child,.hint p:last-child{margin-bottom:0}
+@media(max-width:600px){.hero{grid-template-columns:1fr}.map{min-height:165px}.intro{padding:1.25rem}.tile{padding:.8rem}.tile .icon{margin:0 .55rem 0 0;float:left}.tile small{padding-left:3rem}}
+</style>
+</head>
+<body>
+<header><button class="brand" data-go="home"><span aria-hidden="true">▰</span>Isla Regleta</button><button data-go="family">Para familia</button></header>
+<main id="app"></main>
+<noscript>Activa JavaScript para jugar a Isla Regleta.</noscript>
+<script>
+"use strict";
+const app = document.querySelector("#app");
+const key = "isla-regleta-v1";
+const defaults = {op:"mul",da:2,db:2,size:3,add:"any",sub:"any",div:"exact"};
+const ops = {
+  add:{name:"Suma",symbol:"+"}, sub:{name:"Resta",symbol:"−"},
+  mul:{name:"Multiplicación",symbol:"×"}, div:{name:"División",symbol:"÷"}
+};
+const missionNames = {detect:"Detective de historias",bridge:"Taller de puentes",garden:"Huerto en filas",dock:"Muelle de reparto"};
+const rodColors = ["#fff","#dc3949","#9bd751","#cc73af","#ffd448","#267e51","#262829","#9b5a35","#3477d5","#f68c35"];
+const lightInk = new Set([2,6,7,8,9]);
+let saved = {};
+try { saved = JSON.parse(localStorage.getItem(key) || "{}") || {}; } catch {}
+const data = {config:{...defaults,...saved.config},round:saved.round || null,
+  history:saved.history || [],board:saved.board || [[],[],[]],labels:saved.labels ?? true};
+let storageAvailable = true;
+let page = "home";
+let selectedRod = 1;
+const boardUndo = [];
+let speaking = null;
+let voices = [];
+const synth = window.speechSynthesis;
+function updateVoices() {
+  voices = (synth?.getVoices() || []).filter(voice => /^es\b/i.test(voice.lang) && voice.localService);
+  const button = document.querySelector("#listen");
+  if (button) button.hidden = !voices.length;
+}
+synth?.addEventListener("voiceschanged", updateVoices);
+updateVoices();
+
+function save() {
+  try { localStorage.setItem(key,JSON.stringify(data)); }
+  catch { storageAvailable = false; }
+}
+save();
+
+const random = (min,max) => min + Math.floor(Math.random() * (max-min+1));
+const range = digits => [10 ** (digits-1),10 ** digits-1];
+const fmt = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g,"\u202f");
+function shuffled(values) {
+  const copy = [...values];
+  for (let i=copy.length-1;i>0;i--) {
+    const j = random(0,i);
+    [copy[i],copy[j]] = [copy[j],copy[i]];
+  }
+  return copy;
+}
+function hasRegroup(a,b,type) {
+  while (a || b) {
+    const x = a%10, y = b%10;
+    if (type==="add" ? x+y>=10 : x<y) return true;
+    a = Math.floor(a/10);
+    b = Math.floor(b/10);
+  }
+  return false;
+}
+function makePair(op,c) {
+  const [loA,hiA] = range(c.da);
+  const [loB,hiB] = range(c.db);
+  if (op==="sub" && (loB>hiA || (c.da===1 && c.sub==="yes"))) return null;
+  if (op==="div") {
+    if (c.div==="exact" && loB>hiA) return null;
+    if (c.div==="remainder" && loB>hiA) return [random(loA,hiA),random(loB,hiB)];
+    for (const b of shuffled(Array.from({length:hiB-loB+1},(_,i)=>loB+i))) {
+      if (c.div==="exact") {
+        const min = Math.ceil(loA/b), max = Math.floor(hiA/b);
+        if (min<=max) return [b*random(min,max),b];
+      } else if (b>1) {
+        const a = random(loA,hiA);
+        if (a%b) return [a,b];
+        if (a<hiA) return [a+1,b];
+      }
+    }
+    return null;
+  }
+  for (let i=0;i<500;i++) {
+    const a=random(loA,hiA), b=random(loB,hiB);
+    if (op==="sub" && a<b) continue;
+    if (op==="add" || op==="sub") {
+      const rule=c[op];
+      if (rule!=="any" && hasRegroup(a,b,op)!==(rule==="yes")) continue;
+    }
+    return [a,b];
+  }
+  if (op==="add" && c.add==="yes") return [hiA,hiB];
+  if (op==="sub" && c.sub==="yes") {
+    return c.da===c.db ? [loA+10,loB+1] : [loA+1,loB+2];
+  }
+  return [op==="sub"?hiA:loA,loB];
+}
+
+const themes = [
+  {plural:"pegatinas",place:"el club",groups:"sobres"},
+  {plural:"semillas",place:"el huerto",groups:"bolsitas"},
+  {plural:"fichas",place:"el taller",groups:"cajas"},
+  {plural:"conchas",place:"la playa",groups:"bandejas"},
+  {plural:"tarjetas",place:"la biblioteca",groups:"paquetes"}
+];
+function problem(op,a,b,{variant=random(0,3),theme=random(0,4),mission=""}={}) {
+  const x=fmt(a), y=fmt(b);
+  const {plural,place,groups}=themes[theme];
+  const q=Math.floor(a/b), r=op==="div"?a%b:0;
+  let answer, story, goal, wrong, clue, interpretation="", kind="";
+  if (op==="add") {
+    answer=a+b;
+    goal="La cantidad total";
+    wrong=["La diferencia entre las dos cantidades","La cantidad de un solo grupo"];
+    if (variant%2) {
+      kind="start";
+      story=`En ${place} había algunas ${plural}. Se entregaron ${y} y quedaron ${x}. ¿Cuántas había al comienzo?`;
+      goal="La cantidad que había al comienzo";
+      clue="¿Las piezas que se entregaron también estaban al comienzo?";
+    } else {
+      story=`En ${place} reunieron ${x} ${plural} por la mañana y ${y} por la tarde. ¿Cuántas reunieron en total?`;
+      clue="¿Hay que contar lo reunido en ambos momentos?";
+    }
+  } else if (op==="sub") {
+    answer=a-b;
+    goal="Lo que falta para completar";
+    wrong=["El total original","Cuántos grupos iguales se pueden formar"];
+    if (mission==="bridge") {
+      story=`El puente debe medir ${x} unidades. Ya hay un tramo de ${y}. ¿Cuántas unidades faltan?`;
+      clue="¿El tramo que falta se une al construido para alcanzar la longitud total?";
+    } else if (variant===0) {
+      story=`En ${place} hay ${x} ${plural}. Se usan ${y}. ¿Cuántas quedan?`;
+      goal="La cantidad que queda";
+      clue="¿Las piezas usadas siguen disponibles?";
+    } else if (variant===1) {
+      story=`Un equipo reunió ${x} ${plural} y otro reunió ${y}. ¿Cuántas más reunió el primero?`;
+      goal="La diferencia entre los dos equipos";
+      clue="Si emparejas las piezas de los dos equipos, ¿qué cantidad queda sin pareja?";
+    } else {
+      story=`En ${place} quieren reunir ${x} ${plural}. Ya tienen ${y}. ¿Cuántas les faltan?`;
+      clue="¿Qué cantidad falta para pasar de lo que ya tienen a la meta?";
+    }
+  } else if (op==="mul") {
+    answer=a*b;
+    goal="El total de todos los grupos";
+    wrong=["Cuántas hay en un solo grupo","Cuántos grupos hay"];
+    story=mission==="garden"
+      ? `En el huerto hay ${x} filas con ${y} plantas en cada fila. ¿Cuántas plantas hay?`
+      : `Preparan ${x} ${groups} con ${y} ${plural} en cada uno. ¿Cuántas ${plural} usan?`;
+    clue=`¿${y} es el total o lo que se repite en cada grupo?`;
+  } else {
+    answer=q;
+    wrong=["El total de partida","Lo que falta para llegar al total"];
+    if (r && variant%2) {
+      kind="vehicles";
+      goal="La cantidad de vehículos para que todos viajen";
+      story=`Viajan ${x} personas. Cada vehículo tiene ${y} plazas. ¿Cuántos vehículos necesitan para que viajen todas?`;
+      interpretation="Vehículos necesarios";
+      clue="Si después de llenar vehículos quedan personas, ¿cómo viajarán?";
+    } else if (variant===2) {
+      kind="share";
+      goal="Cuántas recibe cada grupo";
+      story=`Reparten ${x} ${plural} por igual entre ${y} equipos. ¿Cuántas recibe cada equipo${r?" y cuántas quedan sin repartir":""}?`;
+      clue=`¿${y} indica cuántos equipos hay o cuántas piezas recibe cada uno?`;
+    } else {
+      goal="Cuántos grupos completos se pueden formar";
+      story=`Hay ${x} ${plural}. En cada paquete caben ${y}. ¿Cuántos paquetes completos se pueden formar${r?" y cuántas quedan sueltas":""}?`;
+      clue=`¿${y} indica cuántos paquetes hay o cuántas piezas caben en cada uno?`;
+    }
+  }
+  return {op,a,b,variant,theme,mission,answer,r,story,goal,clue,kind,interpretation,
+    choices:shuffled([goal,...wrong]),operations:shuffled(Object.keys(ops))};
+}
+
+function detectivePair(a,b) {
+  const division=problem("div",a,b);
+  Object.assign(division,{story:`Van ${a} personas de excursión. Cada vehículo tiene ${b} plazas. ¿Cuántos vehículos necesitan?`,
+    goal:"Cuántos vehículos necesitan",clue:`¿El ${b} indica las plazas de cada vehículo o personas que ya se sentaron?`,kind:"groups"});
+  division.choices=shuffled([division.goal,"Personas que faltan por sentarse","Plazas de un solo vehículo"]);
+  const subtraction=problem("sub",a,b);
+  Object.assign(subtraction,{story:`Van ${a} personas de excursión. Ya se sentaron ${b}. ¿Cuántas faltan por sentarse?`,
+    goal:"Cuántas personas faltan por sentarse",clue:`¿El ${b} indica las plazas por vehículo o personas que ya se sentaron?`});
+  subtraction.choices=shuffled([subtraction.goal,"El total de personas","Cuántos vehículos necesitan"]);
+  return shuffled([division,subtraction]);
+}
+function lessonQueue(mission,c) {
+  if (mission==="detect") {
+    const [a,b]=[random(3,8),random(3,8)];
+    const pair=detectivePair(a*b,b);
+    pair.forEach(p=>{p.da=String(p.a).length;p.db=1;});
+    return [...pair,...[24,35,48].slice(0,c.size-2).map((n,i)=>
+      problem(["mul","add","sub"][i],n,[6,8,9][i],{theme:i,variant:i}))];
+  }
+  if (mission==="bridge") return Array.from({length:c.size},(_,i)=>{
+    if (i===0) return problem("sub",13,5,{mission});
+    const b=random(2,8);
+    const gap=random(2,9);
+    if (i%2===0) return problem("sub",b+gap,b,{mission});
+    const p=problem("add",gap,b,{mission,variant:0});
+    Object.assign(p,{story:`Un tramo del puente mide ${gap} unidades y otro mide ${b}. ¿Cuánto miden juntos?`,
+      clue:"¿Qué pasa con la longitud cuando unes los dos tramos?"});
+    return p;
+  });
+  if (mission==="garden") return Array.from({length:c.size},(_,i)=>
+    problem("mul",i?random(11,69):23,i?random(11,49):14,{mission}));
+  if (mission==="dock") return Array.from({length:c.size},(_,i)=>{
+    if (i<2) return problem("div",26,4,{mission,variant:i,theme:0});
+    const b=random(3,9);
+    return problem("div",b*random(3,12)+random(0,b-1),b,{mission,variant:i%4});
+  });
+  const enabled=Object.keys(ops).filter(op=>makePair(op,c));
+  const order=shuffled(c.op==="mix"?enabled:[c.op]);
+  if (!order.length || (c.op!=="mix" && !enabled.includes(c.op))) return [];
+  return Array.from({length:c.size},(_,i)=>{
+    const op=order[i%order.length];
+    return problem(op,...makePair(op,c));
+  });
+}
+const fresh = () => ({selected:"",opOK:false,mathOK:false,done:false,build:false,
+  level:0,nudge:false,feedback:"",positive:false,read:null,firstOp:null,
+  firstMath:null,firstContext:null,draft:{},usedSolution:false,corrected:false});
+const current = () => data.round?.queue[data.round.index];
+const step = () => data.round.step;
+function start(mission="") {
+  const c={...data.config};
+  const queue=lessonQueue(mission,c);
+  if (!queue.length) return;
+  data.round={mission,c,queue,index:0,step:fresh(),stats:[],original:c.size,complete:false};
+  go("round");
+}
+function cancelSpeech() {
+  if (speaking) synth?.cancel();
+  speaking=null;
+}
+function go(next) {
+  cancelSpeech();
+  page=next;
+  save();
+  render();
+  window.scrollTo(0,0);
+  const title=app.querySelector("h1");
+  title?.setAttribute("tabindex","-1");
+  title?.focus({preventScroll:true});
+}
+function changeScreen(next) {
+  if (data.round && !data.round.complete && ["practice","missions"].includes(next)) {
+    go("paused");
+    return;
+  }
+  go(next);
+}
+const btn = (label,attrs="",cls="") => `<button type="button" class="${cls}" ${attrs}>${label}</button>`;
+function tile(icon,title,body,attr) {
+  return btn(`<span class="icon" aria-hidden="true">${icon}</span><strong>${title}</strong><small>${body}</small>`,attr,"tile");
+}
+const section = (title,body) => `<section class="panel narrow"><h1>${title}</h1>${body}</section>`;
+const select = (label,id,options,value) => `<label>${label}<select data-setting="${id}">${options.map(([key,name])=>
+  `<option value="${key}" ${String(key)===String(value)?"selected":""}>${name}</option>`).join("")}</select></label>`;
+const controls = (id,options,label) => select(label,id,options,data.config[id]);
+const lengths = [1,2,3,4].map(n=>[n,n]);
+const roundSize = () => controls("size",[[3,"3 retos"],[5,"5 retos"]],"Duración de la ronda");
+function home() {
+  return `<section class="hero"><div class="intro"><h1>Isla Regleta</h1><p>Lee la historia, descubre qué operación necesitas y resuelve a tu ritmo.</p>${data.round && !data.round.complete?btn("Retomar ronda",'data-go="round"',"primary"):""}</div>
+    <div class="map" aria-hidden="true"><span class="landmark">🌴</span><span class="landmark">⛰️</span><span class="landmark">🌉</span><span class="landmark">⛵</span><span class="landmark">🐠</span></div></section>
+    <div class="cards">${tile("✎","Practicar","Escoge la operación y los dígitos.",'data-go="practice"')}
+    ${tile("⌕","Jugar","Resuelve las misiones de la isla.",'data-go="missions"')}
+    ${tile("▰","Mesa de regletas","Explora con piezas de colores.",'data-go="board"')}</div>`;
+}
+function practice() {
+  const c=data.config;
+  const mixed=c.op==="mix";
+  const pair=mixed?null:makePair(c.op,c);
+  const unavailable=mixed?Object.keys(ops).filter(op=>!makePair(op,c)):[];
+  return section("Practicar",`<p class="muted">Elige qué quieres practicar hoy.</p><div class="stack">
+    ${controls("op",[...Object.entries(ops).map(([id,op])=>[id,op.name]),["mix","Operaciones mezcladas"]],"Operación")}
+    <div class="grid">${controls("da",lengths,c.op==="div"?"Dígitos del dividendo":"Dígitos del primer número")}
+    ${controls("db",lengths,c.op==="div"?"Dígitos del divisor":"Dígitos del segundo número")}</div>
+    <div class="grid">${mixed || c.op==="add"?controls("add",[["any","Cualquiera"],["yes","Con llevadas"],["no","Sin llevadas"]],"Suma"):""}
+    ${mixed || c.op==="sub"?controls("sub",[["any","Cualquiera"],["yes","Con préstamos"],["no","Sin préstamos"]],"Resta"):""}
+    ${mixed || c.op==="div"?controls("div",[["exact","Exacta"],["remainder","Con residuo"]],"División"):""}
+    ${roundSize()}</div>
+    ${pair?`<p class="note">Ejemplo · ${fmt(pair[0])} ${ops[c.op].symbol} ${fmt(pair[1])}</p>`:""}
+    ${!pair && !mixed?'<p class="note">Esta combinación no admite ejercicios. Aumenta los dígitos del primer número, reduce los del segundo o cambia el ajuste de la operación.</p>':""}
+    ${unavailable.length?`<p class="note">Con estos ajustes, la ronda omite ${unavailable.map(op=>ops[op].name.toLowerCase()).join(" y ")}. Cambia los dígitos o el ajuste para incluirlas.</p>`:""}
+    <div class="row">${btn("Empezar",'data-start="" '+(!pair&&!mixed?"disabled":""),"primary")}
+    ${btn("Ejemplo de 23 × 14",'data-go="example"')}</div></div>`);
+}
+function missions() {
+  return `<h1>Misiones de la isla</h1><div style="max-width:180px">${roundSize()}</div><div class="cards">
+    ${tile("⌕",missionNames.detect,"Mismos números, historias distintas.",'data-start="detect"')}
+    ${tile("🌉",missionNames.bridge,"Completa tramos para cruzar.",'data-start="bridge"')}
+    ${tile("🌱",missionNames.garden,"Organiza las plantas del huerto.",'data-start="garden"')}
+    ${tile("⛵",missionNames.dock,"Reparte la carga y prepara el viaje.",'data-start="dock"')}</div>`;
+}
+
+function rod(n,show=true) {
+  return `<span class="rod" style="--n:${n};--color:${rodColors[n-1]};--rod-ink:${lightInk.has(n)?"#fff":"#172b24"}" ${show?`aria-label="Regleta de ${n}"`:'aria-hidden="true"'}>${show?n:""}</span>`;
+}
+const rodLine = pieces => `<div class="rod-row">${pieces.map(n=>rod(n)).join("")}</div>`;
+const bar = (...pieces) => `<div class="bar">${pieces.map(text=>
+  `<span class="${String(text).includes("?")?"unknown":""}">${text}</span>`).join("")}</div>`;
+const placeParts = n => [...String(n)].map((d,i)=>Number(d)*10**(String(n).length-i-1)).filter(Boolean);
+function area(p,solved=false) {
+  const rows=placeParts(p.a), cols=placeParts(p.b);
+  return `<figure><table class="area"><caption>${fmt(p.a)} × ${fmt(p.b)} por valor posicional</caption>
+    <thead><tr><th scope="col">×</th>${cols.map(n=>`<th scope="col">${fmt(n)}</th>`).join("")}</tr></thead>
+    <tbody>${rows.map(a=>`<tr><th scope="row">${fmt(a)}</th>${cols.map(b=>
+      `<td>${solved?fmt(a*b):`${fmt(a)} × ${fmt(b)}`}</td>`).join("")}</tr>`).join("")}</tbody></table>
+    <p>${solved?`${rows.flatMap(a=>cols.map(b=>fmt(a*b))).join(" + ")} = <strong>${fmt(p.answer)}</strong>`:
+      "Halla cuánto hay en cada parte y reúne los resultados."}</p></figure>`;
+}
+function visual(p,solved=false) {
+  const {a,b,op,r,kind}=p;
+  if (op==="mul") {
+    if (a<=5 && b<=10) return `<p>${a} filas iguales</p>${Array.from({length:a},()=>rodLine([b])).join("")}<p>¿Cuánto miden todas juntas?</p>`;
+    return area(p,solved);
+  }
+  if (op==="add" && Math.max(a,b)<=10) return `<p>Coloca las dos regletas punta con punta.</p>${rodLine([a,b])}${bar("Total ?")}`;
+  if (op==="sub" && a<=10) return `<p>Alinea ambas desde la izquierda. Busca lo que falta en la segunda fila.</p>${rodLine([a])}${rodLine([b])}`;
+  const x=fmt(a),y=fmt(b);
+  if (op==="add") return `${bar("Total ?")}${bar(x,y)}<p>Las dos partes forman el total.</p>`;
+  if (op==="sub") return `${bar(x+" en total")}${bar(y,"?")}<p>Busca la diferencia entre lo que tienes y el total.</p>`;
+  if (a<=30 && b<=10 && kind!=="share") {
+    const total=Array.from({length:Math.floor(a/10)},()=>10);
+    if (a%10) total.push(a%10);
+    return `<p>Total · ${x}</p>${rodLine(total)}<p>Usa regletas de ${y} para averiguar cuántas caben.</p>${rodLine([b])}`;
+  }
+  return `${bar(x+" en total")}${kind==="share"?bar("?","…","?"):bar(y,"…",y)}<p>${kind==="share"?
+     `Hay ${y} grupos iguales. Busca el tamaño de cada uno.`:`Cada grupo contiene ${y}. Busca cuántos grupos completos caben.`}
+     ${r?" Revisa qué debes hacer con lo que sobra.":""}</p>`;
+}
+function solution(p) {
+  if (p.op==="mul") return area(p,true);
+  const eq=`<strong>${fmt(p.a)} ${ops[p.op].symbol} ${fmt(p.b)} = ${fmt(p.answer)}${p.r?` y sobran ${fmt(p.r)}`:""}</strong>`;
+  if (p.op==="div") return `<p>${p.kind==="share"?`Cada equipo recibe ${fmt(p.answer)}.`:`Caben ${fmt(p.answer)} grupos completos.`} Al multiplicar ${fmt(p.answer)} × ${fmt(p.b)} obtienes ${fmt(p.answer*p.b)}. Al comparar con ${fmt(p.a)}, sobran ${fmt(p.r)}.</p>
+    <p>${eq}</p>${p.interpretation?`<p>Hace falta otro vehículo para quienes quedan. En total hacen falta <strong>${fmt(p.answer+1)}</strong>.</p>`:""}`;
+  return `<p>${p.clue}</p>${visual(p,true)}<p>${eq}</p>`;
+}
+const labels = {read:"Comprensión del enunciado",firstOp:"Elección de operación",firstMath:"Cálculo",firstContext:"Interpretación del residuo"};
+function statsTable(records) {
+  return `<dl>${Object.entries(labels).map(([id,title])=>{
+    const scored=records.filter(r=>typeof r[id]==="boolean");
+    return `<dt><strong>${title}</strong></dt><dd>${scored.length?
+      `${scored.filter(r=>r[id]).length} de ${scored.length} al primer intento`:"Aún sin respuestas registradas"}</dd>`;
+  }).join("")}</dl>`;
+}
+function family() {
+  return section("Para familia",`<p>El avance se guarda en este navegador. Cada fila cuenta solo los retos que evaluaron esa habilidad.</p>
+    <p><strong>${data.history.length}</strong> retos registrados</p>${statsTable(data.history)}`);
+}
+function hintContent(p,s) {
+  const readCheck=s.nudge || s.level===1 || s.read!==null;
+  let content="";
+  if (readCheck) {
+    content+=`<p><strong>¿Qué debes averiguar?</strong></p><div class="row">${p.choices.map((choice,i)=>
+      btn(choice,`data-read="${i}" ${s.readDone?"disabled":""}`)).join("")}</div>`;
+    if (s.readDone) content+=`<p class="section-gap">Buscamos: ${p.goal.toLowerCase()}.</p>`;
+    if (s.level>=1) content+=`<p class="section-gap">${p.clue}</p>`;
+  }
+  if (s.level>=2) content+=visual(p);
+  if (s.level>=3) content+=`<div class="section-gap"><h3>Solución paso a paso</h3>${solution(p)}</div>`;
+  return content;
+}
+function numericField(label,id,s,locked=false,optional=false) {
+  const value=(s.draft[id] || "").replace(/[^0-9]/g,"");
+  return `<label>${label}<input name="${id}" type="text" inputmode="numeric" pattern="[0-9]+" autocomplete="off" maxlength="8" value="${value}" ${locked?"readonly":optional?"":"required"}></label>`;
+}
+function buildContent(p,s) {
+  const title={bridge:"Completa el puente",garden:"Prepara el huerto",dock:"Carga el muelle"}[data.round.mission];
+  const target=p.interpretation?p.answer+1:p.answer;
+  const prompt={bridge:p.op==="add"?"Coloca el tramo que reúne las dos longitudes.":"Coloca el tramo que falta.",
+    garden:"Coloca la ficha con el total de plantas para completar el huerto.",
+    dock:p.interpretation?"Elige la cantidad de vehículos que salen con el grupo.":p.kind==="share"?"Coloca la cantidad que recibe cada equipo.":"Elige cuántos grupos quedan preparados."}[data.round.mission];
+  if (s.done) {
+    const visualBuild=data.round.mission==="bridge"
+      ? (p.op==="sub"?rodLine([p.b,...(target?[target]:[])]):rodLine([p.a,p.b]))
+      : data.round.mission==="garden"?area(p,true)
+      : bar(`${fmt(target)} ${p.interpretation?"vehículos":p.kind==="share"?"por equipo":"grupos completos"}`,...(p.r&&!p.interpretation?[`${fmt(p.r)} sobrantes`]:[]));
+    return `<h3>${title}</h3>${visualBuild}`;
+  }
+  return `<h3>${title}</h3><p>${prompt}</p><div class="row">${s.buildOptions.map(n=>btn(
+    data.round.mission==="bridge" && n>=1 && n<=10?rod(n):fmt(n),`data-build="${n}" aria-label="Colocar ${fmt(n)}"`)).join("")}</div>`;
+}
+function roundView() {
+  const p=current(),s=step(), r=data.round;
+  const mixed=r.mission==="detect" || (!r.mission && r.c.op==="mix");
+  const solving=!s.done&&!s.build&&s.level<3;
+  const number=r.queue.slice(0,r.index+1).filter(item=>!item.retry).length;
+  const followup=p.retry?"Reto parecido":`${number} de ${r.original}`;
+  const showResidue=p.r && (!mixed || s.opOK);
+  const previous=r.queue[r.index-1];
+  const compare=r.mission==="detect" && r.index===1 && s.done
+    ? `<div class="note good"><strong>Compara las historias</strong><p>${previous.story}</p><p>En una historia, el ${p.b} son plazas por vehículo. En la otra, son personas que ya se sentaron.</p></div>`:"";
+  const hints=hintContent(p,s);
+  return section(r.mission?missionNames[r.mission]:"Practicar",`
+    <div class="row spread"><span>${followup}</span>${btn("Pausar",'data-go="paused"')}</div>
+    <progress aria-label="Progreso de la ronda" max="${r.original}" value="${number-Number(!s.done && !p.retry)}"></progress>
+    <p class="story">${p.story}</p>
+    ${btn("Escuchar enunciado",`id="listen" data-speak ${voices.length?"":"hidden"}`)}
+    <div class="stack section-gap">
+    ${solving?`<form id="answer" class="stack">
+      ${mixed?`<fieldset><legend>¿Qué operación usarías?</legend><div class="row">${p.operations.map(op=>btn(
+        `${ops[op].symbol} ${ops[op].name}`,`data-op="${op}" aria-pressed="${s.selected===op}" ${s.opOK?"disabled":""}`,"choice")).join("")}</div></fieldset>`:""}
+      <div class="grid">${numericField(showResidue?"Cociente": "Tu respuesta","answer",s,s.mathOK,mixed&&!s.opOK)}
+      ${showResidue?numericField("Residuo","residue",s,s.mathOK):""}
+      ${showResidue && p.interpretation?numericField(p.interpretation,"context",s):""}</div>
+      <div class="row">${btn(mixed&&!s.opOK?"Comprobar operación":"Comprobar","","primary").replace('type="button"','type="submit"')}
+      ${!s.nudge && s.level===0?btn("¿Qué se busca?",'data-read-help'):""}
+      ${btn(["Dame una pista","Quiero verlo","Ver solución"][s.level],'data-hint')}</div>
+      </form>`:""}
+    <div id="feedback" class="note ${s.positive?"good":""}" role="status">${s.feedback}</div>
+    <div id="hint" class="hint" tabindex="-1">${hints}</div>
+    ${s.build?`<div class="note good">${buildContent(p,s)}</div>`:""}
+    ${compare}
+    ${s.done?btn(s.usedSolution?"Intentar uno parecido":"Continuar",'data-next',"primary"):""}
+    </div>`);
+}
+function summary() {
+  const r=data.round;
+  const independently=r.stats.filter(item=>!item.usedSolution && item.firstMath===true).length;
+  return section("Ronda terminada",`<p>Respuestas de cálculo al primer intento: <strong>${independently}</strong>.</p>
+    ${statsTable(r.stats)}<div class="row">${btn("Otra ronda",`data-start="${r.mission}"`,"primary")}${btn("Volver a la isla",'data-go="home"')}</div>`);
+}
+function board() {
+  return section("Mesa de regletas",`<p>Toca una regleta y elige una fila, o arrástrala hasta allí.</p>
+    <div class="palette">${rodColors.map((_,i)=>btn(rod(i+1,data.labels),
+      `draggable="true" data-rod="${i+1}" aria-label="Elegir regleta de ${i+1}" aria-pressed="${selectedRod===i+1}"`,"choice")).join("")}</div>
+    <div class="stack section-gap">${data.board.map((pieces,i)=>`<div class="board" data-drop="${i}">
+      <strong>Fila ${i+1} · longitud ${pieces.reduce((a,b)=>a+b,0)}</strong>
+      <div class="rod-row">${pieces.map(n=>rod(n,data.labels)).join("")}</div>
+      ${btn(`Colocar ${selectedRod}`,`data-place="${i}"`)}</div>`).join("")}</div>
+    <div class="row section-gap">${btn("Deshacer",'data-undo '+(!boardUndo.length?"disabled":""))}
+    ${btn("Limpiar mesa",'data-clear '+(!data.board.some(row=>row.length)?"disabled":""))}
+    ${btn(data.labels?"Ocultar etiquetas":"Mostrar etiquetas",'data-labels')}</div>`);
+}
+function render() {
+  const views={home,practice,missions,round:roundView,summary,family,board,
+    paused:()=>section("Ronda en pausa",`<p>Puedes volver al mismo reto cuando quieras.</p><div class="row">
+      ${btn("Retomar ronda",'data-go="round"',"primary")}${btn("Volver a la isla",'data-go="home"')}
+      ${btn("Cambiar de actividad",'data-switch')}</div>`),
+    switch:()=>section("Cambiar de actividad",`<p>Si dejas esta ronda, se conservarán los resultados de los retos registrados.</p>
+      <div class="row">${btn("Seguir con la ronda",'data-go="round"',"primary")}
+      ${btn("Dejar ronda y practicar",'data-replace="practice"')}
+      ${btn("Dejar ronda y jugar",'data-replace="missions"')}</div>`),
+    example:()=>section("Multiplicar 23 × 14",`<p>Separa cada número en decenas y unidades. Multiplica cada parte y suma los cuatro resultados.</p>
+      ${area(problem("mul",23,14),true)}${btn("Volver a practicar",'data-go="practice"')}`)
+  };
+  app.innerHTML=(views[page] || home)()+(!storageAvailable?'<p class="note section-gap">El navegador no permite guardar el avance en esta sesión.</p>':"");
+}
+function refresh(selector) {
+  save();
+  render();
+  app.querySelector(selector)?.focus({preventScroll:true});
+}
+function report(message,positive=false) {
+  const s=step();
+  s.feedback=message;
+  s.positive=positive;
+}
+function record(p,s) {
+  if (s.logged) return;
+  const entry={op:p.op,read:s.read,firstOp:s.firstOp,firstMath:s.firstMath,firstContext:s.firstContext,usedSolution:s.usedSolution};
+  data.round.stats.push(entry);
+  data.history.push(entry);
+  s.logged=true;
+}
+function complete() {
+  const p=current(),s=step(),r=data.round;
+  record(p,s);
+  if (["bridge","garden","dock"].includes(r.mission)) {
+    const n=p.interpretation?p.answer+1:p.answer;
+    const alternatives=n===0?[1,2]:[n-1,n+1];
+    s.buildOptions=shuffled([n,...alternatives]);
+    s.build=true;
+  } else {
+    s.done=true;
+  }
+  report(s.corrected?"Lo corregiste. ¡Bien hallado!":p.retry?"Resuelto. Ya aplicaste la idea en otro reto.":"¡Resuelto!",true);
+  refresh(s.build?"[data-build]":"[data-next]");
+}
+function checkAnswer(event) {
+  event.preventDefault();
+  const p=current(),s=step();
+  const mixed=data.round.mission==="detect" || (!data.round.mission && data.round.c.op==="mix");
+  if (mixed && !s.opOK) {
+    if (!s.selected) {
+      report("Elige una operación para comprobar tu respuesta.");
+      refresh("[data-op]");
+      return;
+    }
+    const right=s.selected===p.op;
+    if (s.level<2) s.firstOp ??= right;
+    if (!right) {
+      s.nudge=true;
+      s.corrected=true;
+      report("Revisa la operación. Puedes empezar por identificar qué pide la historia.");
+      refresh("#hint button");
+      return;
+    }
+    s.opOK=true;
+    if (p.r || !s.draft.answer) {
+      report("Elegiste la operación correcta. Ahora completa el cálculo.",true);
+      refresh("[name=answer]");
+      return;
+    }
+  }
+  if (!s.mathOK) {
+    const right=Number(s.draft.answer)===p.answer && (!p.r || Number(s.draft.residue)===p.r);
+    s.firstMath ??= right;
+    if (!right) {
+      s.corrected=true;
+      report(p.r?"Revisa el cociente y el residuo. El divisor por el cociente más el residuo debe dar el dividendo."
+        : mixed?"La operación está bien. Revisa el cálculo.":"Revisa el cálculo. Puedes abrir una pista si lo necesitas.");
+      refresh("[name=answer]");
+      return;
+    }
+    s.mathOK=true;
+  }
+  if (p.interpretation) {
+    const right=Number(s.draft.context)===p.answer+1;
+    s.firstContext ??= right;
+    if (!right) {
+      s.corrected=true;
+      report("El cociente y el residuo están bien. ¿Qué vehículo usarán las personas que todavía no tienen asiento?");
+      refresh("[name=context]");
+      return;
+    }
+  }
+  complete();
+}
+function similar(p) {
+  const c={...data.round.c,da:String(p.a).length,db:String(p.b).length};
+  if (p.op==="div") c.div=p.r?"remainder":"exact";
+  let pair=[p.a,p.b];
+  for (let i=0;i<16 && pair[0]===p.a && pair[1]===p.b;i++) {
+    pair=makePair(p.op,c) || [p.a,p.b];
+  }
+  if (pair[0]===p.a && pair[1]===p.b) return null;
+  if (p.mission==="bridge") {
+    const b=random(2,8);
+    const gap=(p.answer%8)+2;
+    pair=p.op==="sub"?[b+gap,b]:[gap,b];
+  }
+  const retry=problem(p.op,...pair,{variant:p.variant,theme:(p.theme+1)%themes.length,mission:p.mission});
+  if (p.mission==="bridge" && p.op==="add") {
+    retry.story=`Un tramo del puente mide ${pair[0]} unidades y otro mide ${pair[1]}. ¿Cuánto miden juntos?`;
+    retry.clue="¿Qué pasa con la longitud cuando unes los dos tramos?";
+  }
+  return {...retry,retry:true};
+}
+function advance() {
+  const r=data.round,p=current(),s=step();
+  if (s.usedSolution && !p.retry) {
+    const next=similar(p);
+    if (next) r.queue.splice(r.mission==="detect" && r.index===0 ? 2 : r.index+1,0,next);
+  }
+  if (r.index+1===r.queue.length) {
+    r.complete=true;
+    go("summary");
+    return;
+  }
+  r.index++;
+  r.step=fresh();
+  go("round");
+}
+function readCheck(index) {
+  const s=step(),p=current();
+  const right=p.choices[index]===p.goal;
+  if (s.level<2) s.read ??= right;
+  if (right) {
+    s.readDone=true;
+    if (!s.done) report("Identificaste lo que pide la historia.",true);
+  } else {
+    s.corrected=true;
+    report("Vuelve a leer la pregunta del enunciado. Busca la cantidad que aún hace falta saber.");
+  }
+  refresh(right?"[data-hint]":"#hint button");
+}
+function addRod(row,n) {
+  if (!Number.isInteger(n) || n<1 || n>10 || data.board[row].length>=50) return;
+  boardUndo.push(data.board.map(pieces=>[...pieces]));
+  data.board[row].push(n);
+  refresh(`[data-place="${row}"]`);
+}
+app.addEventListener("submit",checkAnswer);
+app.addEventListener("input",event=>{
+  const input=event.target;
+  if (input.closest("#answer")) {
+    input.value=input.value.replace(/[^0-9]/g,"");
+    step().draft[input.name]=input.value;
+    save();
+  }
+});
+app.addEventListener("change",event=>{
+  const input=event.target;
+  const id=input.dataset.setting;
+  if (id) {
+    data.config[id]=["da","db","size"].includes(id)?Number(input.value):input.value;
+    refresh(`[data-setting="${id}"]`);
+  }
+});
+app.addEventListener("dragstart",event=>{
+  const button=event.target.closest("[data-rod]");
+  if (button) {
+    event.dataTransfer.effectAllowed="copy";
+    event.dataTransfer.setData("text/plain",button.dataset.rod);
+  }
+});
+app.addEventListener("dragover",event=>{
+  if (event.target.closest("[data-drop]")) event.preventDefault();
+});
+app.addEventListener("drop",event=>{
+  const row=event.target.closest("[data-drop]");
+  if (row) {
+    event.preventDefault();
+    addRod(Number(row.dataset.drop),Number(event.dataTransfer.getData("text/plain")));
+  }
+});
+document.addEventListener("click",event=>{
+  const button=event.target.closest("button");
+  if (!button) return;
+  const a=button.dataset;
+  if (a.go) { changeScreen(a.go); return; }
+  if (a.start!==undefined) { start(a.start); return; }
+  if (a.switch!==undefined) { go("switch"); return; }
+  if (a.replace) { data.round=null; go(a.replace); return; }
+  if (a.rod) { selectedRod=Number(a.rod); refresh(`[data-rod="${a.rod}"]`); return; }
+  if (a.place!==undefined) { addRod(Number(a.place),selectedRod); return; }
+  if (a.undo!==undefined && boardUndo.length) { data.board=boardUndo.pop(); refresh(boardUndo.length?"[data-undo]":"[data-place]"); return; }
+  if (a.clear!==undefined) {
+    boardUndo.push(data.board.map(row=>[...row]));
+    data.board=[[],[],[]];
+    refresh("[data-undo]");
+    return;
+  }
+  if (a.labels!==undefined) { data.labels=!data.labels; refresh("[data-labels]"); return; }
+  if (page!=="round") return;
+  const p=current(),s=step();
+  if (a.speak!==undefined && synth && voices.length) {
+    cancelSpeech();
+    const utterance=new SpeechSynthesisUtterance(p.story);
+    utterance.voice=voices[0];
+    utterance.lang=voices[0].lang;
+    utterance.rate=.92;
+    utterance.onend=()=>{ if (speaking===utterance) speaking=null; };
+    speaking=utterance;
+    synth.speak(utterance);
+  }
+  if (a.op) { s.selected=a.op; refresh(`[data-op="${a.op}"]`); }
+  if (a.readHelp!==undefined) { s.nudge=true; refresh("#hint button"); }
+  if (a.read!==undefined) readCheck(Number(a.read));
+  if (a.hint!==undefined) {
+    s.level++;
+    if (s.level===3) {
+      s.usedSolution=true;
+      s.done=true;
+      record(p,s);
+      report(p.retry?"Revisa cómo se resuelve el reto.":"Revisa la solución y prueba con otros números.");
+    }
+    refresh("#hint");
+  }
+  if (a.build!==undefined) {
+    const right=Number(a.build)===(p.interpretation?p.answer+1:p.answer);
+    s.done=right;
+    report(right?"¡Misión completada!":"Usa la cantidad que acabas de calcular.",right);
+    refresh(right?"[data-next]":`[data-build="${a.build}"]`);
+  }
+  if (a.next!==undefined) advance();
+});
+render();
+</script>
+</body>
+</html>
