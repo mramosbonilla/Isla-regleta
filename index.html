@@ -258,7 +258,8 @@ function makePair(op,c) {
   if (op==="div") {
     if (c.div==="exact" && loB>hiA) return null;
     if (c.div==="remainder" && loB>hiA) return [random(loA,hiA),random(loB,hiB)];
-    for (const b of shuffled(Array.from({length:hiB-loB+1},(_,i)=>loB+i))) {
+    for (let attempt=0;attempt<200;attempt++) {
+      const b=random(loB,Math.min(hiB,c.div==="exact"?hiA:hiB));
       if (c.div==="exact") {
         const min = Math.ceil(loA/b), max = Math.floor(hiA/b);
         if (min<=max) return [b*random(min,max),b];
@@ -336,8 +337,10 @@ const storyShapes={
   ]
 };
 
+const storyDecks={};
+function nextStoryVariant(op){if(!storyDecks[op]?.length)storyDecks[op]=shuffled(Array.from({length:storyShapes[op].length},(_,i)=>i+4));return storyDecks[op].pop();}
 function problem(op,a,b,{variant,theme=random(0,4),mission=""}={}) {
-  variant ??= random(0,mission?3:11);
+  variant ??= mission?random(0,3):nextStoryVariant(op);
   const x=fmt(a), y=fmt(b);
   const {plural,place,groups}=themes[theme];
   const q=Math.floor(a/b), r=op==="div"?a%b:0;
@@ -429,7 +432,7 @@ function randomPracticeProblem(config) {
   const keys=Object.keys(ops);
   while (true) {
     const op=keys[random(0,keys.length-1)];
-    const pair=makePair(op,{...config,da:random(1,4),db:random(1,4)});
+    const pair=makePair(op,{...config,da:random(1,maxDigits(op)),db:random(1,maxDigits(op))});
     if (pair) return problem(op,...pair);
   }
 }
@@ -507,7 +510,8 @@ const section = (title,body) => `<section class="panel narrow"><h1>${title}</h1>
 const select = (label,id,options,value) => `<label>${label}<select data-setting="${id}">${options.map(([key,name])=>
   `<option value="${key}" ${String(key)===String(value)?"selected":""}>${name}</option>`).join("")}</select></label>`;
 const controls = (id,options,label) => select(label,id,options,data.config[id]);
-const lengths = [1,2,3,4].map(n=>[n,n]);
+const maxDigits = op => ["add","sub"].includes(op)?10:5;
+const digitOptions = op => Array.from({length:maxDigits(op)},(_,i)=>[i+1,i+1]);
 const roundSize = () => controls("size",[[3,"3 retos"],[5,"5 retos"]],"Duración de la ronda");
 function home() {
   return `<section class="hero"><div class="intro"><h1>Operaciones básicas con Vale <small class="revision" style="color:#eee4ff">v17</small></h1><p>Lee la historia, descubre qué operación necesitas y resuelve a tu ritmo.</p>${data.round && !data.round.complete?btn("Retomar ronda",'data-resume',"primary"):""}</div>
@@ -530,8 +534,8 @@ function practiceControls() {
     ${controls("mode",[["custom","Elegir yo"],["random","Todo aleatorio"]],"Modo de práctica")}
     ${randomMode?'<p class="muted">Cada reto sortea la operación y los dígitos de los dos números.</p>':`
       ${controls("op",[...Object.entries(ops).map(([id,op])=>[id,op.name]),["mix","Operaciones mezcladas"]],"Operación")}
-      <div class="grid">${controls("da",lengths,c.op==="div"?"Dígitos del dividendo":"Dígitos del primer número")}
-      ${controls("db",lengths,c.op==="div"?"Dígitos del divisor":"Dígitos del segundo número")}</div>`}
+      <div class="grid">${controls("da",digitOptions(c.op),c.op==="div"?"Dígitos del dividendo":"Dígitos del primer número")}
+      ${controls("db",digitOptions(c.op),c.op==="div"?"Dígitos del divisor":"Dígitos del segundo número")}</div>`}
     <details id="practice-options"><summary>Ajustes de la ronda</summary><div class="grid section-gap">
     ${randomMode || mixed || c.op==="add"?controls("add",[["any","Cualquiera"],["yes","Con llevadas"],["no","Sin llevadas"]],"Suma"):""}
     ${randomMode || mixed || c.op==="sub"?controls("sub",[["any","Cualquiera"],["yes","Con préstamos"],["no","Sin préstamos"]],"Resta"):""}
@@ -911,7 +915,7 @@ function paperCheck() {
   if (!right) {
     s.corrected=true;
     const clue=paperHint(p,w,a,b);
-    return say("El planteamiento está bien. "+clue.message,clue.cell?`[data-cell="${clue.cell}"]`:focusRow(clue.id));
+    return say("Revisa y corrige. "+clue.message,clue.cell?`[data-cell="${clue.cell}"]`:focusRow(clue.id));
   }
   if (p.interpretation) {
     w.context=true;
@@ -1041,7 +1045,32 @@ const workedExamples={
     ["7 − 4 = 3. Escribe 3 como residuo final. Cociente 11 y residuo 3.",7,0,"3"],
   ]},
 };
-let demo={op:"",step:0,timer:null,playing:false,utterance:null};
+let demo={da:2,db:2,op:"",step:0,timer:null,playing:false,utterance:null};
+function makeDemo(op,da,db){
+ const pair=makePair(op,{...defaults,da,db,div:"remainder"});if(!pair)return null;
+ const [a,b]=pair,A=String(a).split("").reverse().map(Number),B=String(b).split("").reverse().map(Number),w=Math.max(da,db),steps=[],rows=[];
+ const push=(m,r,c,v,used)=>steps.push([m,r,c,String(v),used]);
+ const digits=(n,r,label)=>String(n).split("").forEach((v,i)=>push("Escribe "+v+" en "+label+".",r,String(n).length-i-1,v));
+ if(op==="add"||op==="sub"){
+ rows.push([op==="add"?"Llevadas":"Préstamos","",w+1,"scratch"],["Primer número","",w,"operand"],["Segundo número",ops[op].symbol,w,"operand"],["Resultado","",w+1,"rule"]);
+ digits(a,1,"el primer número");digits(b,2,"el segundo número");let carry=0;
+ for(let i=0;i<w;i++){const x=A[i]||0,y=B[i]||0;if(op==="add"){let n=x+y+carry;push(x+" + "+y+" + "+carry+" = "+n+". Escribe "+n%10+".",3,i,n%10);carry=Math.floor(n/10);if(carry)push("Lleva "+carry+" a la columna siguiente.",0,i+1,carry);}else{let n=x-carry; if(n<y){push("Presta una unidad de la columna siguiente.",0,i+1,"−1");push("Agrega diez a esta columna.",0,i,"+10");n+=10;carry=1;}else carry=0;push(n+" − "+y+" = "+(n-y)+".",3,i,n-y);}}
+ if(op==="add"&&carry)push("Escribe la última llevada.",3,w,carry);
+ }else if(op==="mul"){
+ for(let j=0;j<db;j++)rows.push(["Llevada del parcial "+(j+1),"",w,"scratch"]);
+ const ar=db,br=db+1,sr=db+2,pr=db+3,rr=pr+db;
+ rows.push(["Primer número","",w,"operand"],["Segundo número","×",w,"operand"],["Llevadas de la suma","",da+db,"scratch"]);
+ for(let j=0;j<db;j++)rows.push(["Parcial "+(j+1),"",da+1,"rule",j]);rows.push(["Resultado","",da+db,"rule"]);
+ digits(a,ar,"el primer número");digits(b,br,"el segundo número");const parts=[];
+ for(let j=0;j<db;j++){let c=0;parts.push(a*B[j]*10**j);for(let i=0;i<da;i++){let n=A[i]*B[j]+c;push(A[i]+" × "+B[j]+" + "+c+" = "+n+". Escribe "+n%10+".",pr+j,i+j,n%10,c?[j,i]:undefined);c=Math.floor(n/10);if(c&&i<da-1)push("Lleva "+c+".",j,i+1,c);}if(c)push("Escribe la última cifra del parcial.",pr+j,da+j,c);}
+ let c=0;for(let i=0;i<String(a*b).length;i++){let n=c+parts.reduce((t,p)=>t+Math.floor(p/10**i)%10,0);push("Suma la columna: "+n+". Escribe "+n%10+".",rr,i,n%10,c?[sr,i]:undefined);c=Math.floor(n/10);if(c)push("Lleva "+c+" a la siguiente columna.",sr,i+1,c);}
+ }else{
+ rows.push(["Divisor","",db,"operand"],["Cociente","",da],["Dividendo","÷",da,"operand"]);digits(b,0,"el divisor");digits(a,2,"el dividendo");let rem=0;
+ for(let i=da-1;i>=0;i--){let n=rem*10+A[i],q=Math.floor(n/b),p=q*b;rem=n-p;let row=rows.length;rows.push(["Número que divides","",db+1],["Producto","−",db+1],["Residuo","",db+1,"rule"]);push("Divide "+n+" entre "+b+". Cabe "+q+" veces.",1,i,q);for(const [v,r,l] of [[n,row,"número que divides"],[p,row+1,"producto"],[rem,row+2,"residuo"]])digits(v,r,l);}
+ }
+ steps[steps.length-1][0]+=" ¡Muy bien! El resultado es "+fmt(op==="add"?a+b:op==="sub"?a-b:op==="mul"?a*b:Math.floor(a/b))+".";
+ return {title:fmt(a)+" "+ops[op].symbol+" "+fmt(b),columns:op==="mul"?da+db:op==="div"?Math.max(da,db)+2:w+1,rows,steps};
+}
 function stopDemo() {
   clearTimeout(demo.timer);
   demo.timer=null;
@@ -1078,7 +1107,7 @@ function howItWorks() {
   return section("Cómo funciona",`<p>Elige una operación para seguir la pizarra con el profesor. Puedes pausar y avanzar a tu ritmo.</p>
     <p id="demo-voice-status" class="muted" ${voices.length?"hidden":""}>La narración requiere una voz en español instalada en el dispositivo.</p>
     <div class="row">${Object.entries(ops).map(([id,o])=>btn(o.name,`data-demo="${id}" aria-pressed="${demo.op===id}"`,"choice")).join("")}</div>
-    ${demo.op?`<h2 class="section-gap">${workedExamples[demo.op].title}</h2>
+    ${demo.op?`<div class="grid">${select("Dígitos del primer número","demoDa",digitOptions(demo.op),demo.da)}${select("Dígitos del segundo número","demoDb",digitOptions(demo.op),demo.db)}</div><p id="demo-error" class="note"></p><h2 class="section-gap">${workedExamples[demo.op].title}</h2>
       <div class="row">
         ${btn("Anterior",'data-demo-control="-1"')}${btn("Siguiente",'data-demo-control="1"')}
         ${btn(demo.playing?"Pausar":demo.step===workedExamples[demo.op].steps.length-1?"Repetir":"Reproducir",`data-demo-control="${demo.playing?"pause":"play"}"`)}</div><div id="demo-frame">${demoFrame()}</div>`:""}`);
@@ -1224,7 +1253,7 @@ function complete() {
   } else {
     s.done=true;
   }
-  report(s.corrected?"Lo corregiste. ¡Bien hallado!":p.retry?"Resuelto. Ya aplicaste la idea en otro reto.":"¡Resuelto!",true);
+  report(s.corrected?"¡Felicitaciones! Lo corregiste y el resultado es correcto.":"¡Felicitaciones! El resultado es correcto.",true);
   refresh(s.build?"[data-build]":"[data-next]");
 }
 function checkAnswer(event) {
@@ -1259,7 +1288,7 @@ function checkAnswer(event) {
     if (!right) {
       s.corrected=true;
       report(p.r?"Revisa el cociente y el residuo. El divisor por el cociente más el residuo debe dar el dividendo."
-        : mixed?"La operación está bien. Revisa el cálculo.":"Revisa el cálculo. Puedes abrir una pista si lo necesitas.");
+        : mixed?"La operación está bien. Revisa y corrige el cálculo.":"Revisa y corrige el cálculo. Puedes abrir una pista si lo necesitas.");
       refresh("[name=answer]");
       return;
     }
@@ -1344,7 +1373,7 @@ app.addEventListener("input",event=>{
       input.value=digits;
       input.setSelectionRange(cursor,cursor);
     }
-    for (let i=0;i<4;i++) {
+    for (let i=0;i<width;i++) {
       const digit=digits[digits.length-i-1],key=id+"-"+i;
       if (digit===undefined) delete cells[key];
       else cells[key]=digit;
@@ -1379,8 +1408,10 @@ app.addEventListener("input",event=>{
 app.addEventListener("change",event=>{
   const input=event.target;
   const id=input.dataset.setting;
+  if(id==="demoDa"||id==="demoDb"){stopDemo();const da=id==="demoDa"?Number(input.value):demo.da,db=id==="demoDb"?Number(input.value):demo.db;const example=makeDemo(demo.op,da,db);if(!example){refresh();app.querySelector("#demo-error").textContent="Esta combinación no permite una resta positiva. Ajusta los dígitos.";return;}demo.da=da;demo.db=db;workedExamples[demo.op]=example;demo.step=0;refresh();return;}
   if (id) {
     data.config[id]=["da","db","size"].includes(id)?Number(input.value):input.value;
+    if(id==="op"){for(const k of ["da","db"]) data.config[k]=Math.min(data.config[k],maxDigits(input.value));}
     const open=input.closest("details")?.open;
     refresh(`[data-setting="${id}"]`);
     if (open) {
@@ -1469,6 +1500,7 @@ document.addEventListener("click",event=>{
   if (a.demo) {
     stopDemo();
     demo.op=a.demo;
+    demo.da=Math.min(demo.da,maxDigits(demo.op));demo.db=Math.min(demo.db,maxDigits(demo.op));if(demo.op==="sub")demo.db=Math.min(demo.db,demo.da);workedExamples[demo.op]=makeDemo(demo.op,demo.da,demo.db)||workedExamples[demo.op];
     demo.step=0;
     playDemo(`[data-demo="${demo.op}"]`);
     return;
