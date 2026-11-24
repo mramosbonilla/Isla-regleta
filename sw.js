@@ -3,7 +3,7 @@
 const scope = new URL(self.registration.scope);
 const index = new URL("index.html", scope).href;
 const cachePrefix = "isla-regleta:" + scope.pathname + ":";
-const cacheName = cachePrefix + "40";
+const cacheName = cachePrefix + "41";
 
 self.addEventListener("install", event => {
   event.waitUntil((async () => {
